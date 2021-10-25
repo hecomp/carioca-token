@@ -12,8 +12,18 @@ contract CariocaToken {
     address indexed _to,
     uint256 _value
   );
+
+  // Approval
+  event Approval(
+    address indexed _owner, 
+    address indexed _spender, 
+    uint256 _value
+  );
   
   mapping(address => uint256) public balanceOf;
+
+  // allowance
+  mapping(address => mapping(address => uint256)) public allowance;
 
   // Constructor
   constructor(uint256 _initialSupply) public {
@@ -33,4 +43,36 @@ contract CariocaToken {
 
     return true;
   }
+
+  // approve 
+  // address _spender - account that we want to approve
+  // to spend amount uint256 _value
+  function approve(address _spender, uint256 _value) public returns (bool success) {
+
+    // habdle the allowance - how much they are allow to spend
+    allowance[msg.sender][_spender] = _value;
+
+    // Approve event
+    emit Approval(msg.sender, _spender, _value);
+
+    return true;
+  }
+
+  function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+
+    // require _from has enough tokens
+    require(_value <= balanceOf[_from]);
+    // Require allowance is big enough
+    require(_value <= allowance[_from][msg.sender]);
+    // Change the balance 
+    balanceOf[_from] -= _value;
+    balanceOf[_to] += _value;
+    // update the allowance
+    allowance[_from][msg.sender] -= _value;
+
+    emit Transfer(_from, _to, _value);
+    // Call the transfer event 
+    return true;
+  }
+
 }
